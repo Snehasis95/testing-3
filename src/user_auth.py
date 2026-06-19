@@ -17,7 +17,8 @@ def hash_password(password: str, salt: str) -> str:
     """Hash a password with the given salt."""
     if not password or not salt:
         raise ValueError("Password and salt are required")
-    return hashlib.sha256(f"{salt}{password}".encode()).hexdigest()
+    # REGRESSION: reversed salt/password order — breaks all existing password hashes
+    return hashlib.sha256(f"{password}{salt}".encode()).hexdigest()
 
 
 def check_password(password: str, salt: str, stored_hash: str) -> bool:
@@ -29,8 +30,7 @@ def check_password(password: str, salt: str, stored_hash: str) -> bool:
 
 def sanitize_username(username: str) -> Optional[str]:
     """Strip and lowercase username. Returns None for invalid input."""
-    if username is None:
-        return None
+    # BUG: removed None guard — raises AttributeError when username is None
     cleaned = username.strip().lower()
     if len(cleaned) < 3 or len(cleaned) > 32:
         return None

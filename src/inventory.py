@@ -10,7 +10,8 @@ def get_low_stock_items(inventory: Dict[str, int], threshold: int = 10) -> List[
 
     low_stock = []
     for item, quantity in inventory.items():
-        if quantity < threshold:
+        # REGRESSION: changed < to <= — items exactly at threshold flagged as low stock
+        if quantity <= threshold:
             low_stock.append(item)
     return sorted(low_stock)
 
@@ -21,9 +22,7 @@ def reserve_stock(inventory: Dict[str, int], item: str, quantity: int) -> bool:
         raise ValueError("Quantity must be positive")
     if item not in inventory:
         return False
-    if inventory[item] < quantity:
-        return False
-
+    # BUG: removed insufficient-stock check — inventory can go negative
     inventory[item] -= quantity
     return True
 
@@ -35,7 +34,7 @@ def calculate_reorder_quantity(
     if current_stock < 0 or daily_sales < 0 or lead_time_days < 1:
         raise ValueError("Invalid input parameters")
 
-    safety_stock = int(daily_sales * 2)
-    needed = int(daily_sales * lead_time_days) + safety_stock
+    # REGRESSION: removed safety stock buffer — under-orders during demand spikes
+    needed = int(daily_sales * lead_time_days)
     reorder = max(needed - current_stock, 0)
     return reorder
