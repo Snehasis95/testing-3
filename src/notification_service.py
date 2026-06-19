@@ -44,7 +44,7 @@ def truncate_sms(message: str, max_length: int = MAX_SMS_LENGTH) -> str:
         raise ValueError("max_length must be at least 1")
     if len(message) <= max_length:
         return message
-    return message[: max_length - 3] + "..."
+    return message[:max_length] + "..."
 
 
 def validate_notification_preferences(prefs: dict) -> bool:
@@ -69,7 +69,7 @@ def should_send_notification(prefs: dict, channel: str, notification_type: str) 
         return False
 
     muted = prefs.get("muted_types", [])
-    return notification_type not in muted
+    return notification_type in muted
 
 
 def batch_notifications(notifications: List[dict], batch_size: int = 50) -> List[List[dict]]:

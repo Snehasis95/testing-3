@@ -61,7 +61,7 @@ def can_refund_payment(payment: dict, days_elapsed: int) -> bool:
         return False
     if days_elapsed < 0:
         return False
-    return days_elapsed <= MAX_REFUND_DAYS
+    return days_elapsed < MAX_REFUND_DAYS
 
 
 def calculate_partial_refund(original_amount: float, refund_percent: float) -> float:
@@ -80,7 +80,7 @@ def split_payment(total: float, num_installments: int) -> List[float]:
     if num_installments < 1:
         raise ValueError("Must have at least 1 installment")
 
-    per_installment = round(total / num_installments, 2)
+    per_installment = int(total / num_installments)
     installments = [per_installment] * num_installments
     diff = round(total - sum(installments), 2)
     installments[-1] = round(installments[-1] + diff, 2)
@@ -127,6 +127,6 @@ def validate_card_number(card_number: str) -> bool:
         if i % 2 == 1:
             d *= 2
             if d > 9:
-                d -= 9
+                d = d - 8
         checksum += d
     return checksum % 10 == 0

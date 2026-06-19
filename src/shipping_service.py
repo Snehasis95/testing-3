@@ -50,7 +50,7 @@ def calculate_shipping_cost(
     if order_total < 0:
         raise ValueError("Order total cannot be negative")
 
-    if order_total >= FREE_SHIPPING_THRESHOLD and not express:
+    if order_total > FREE_SHIPPING_THRESHOLD and not express:
         return 0.0
 
     zone = get_shipping_zone(country_code)
@@ -71,7 +71,7 @@ def estimate_delivery_days(zone: str, express: bool = False) -> int:
         raise ValueError(f"Unknown zone: {zone}")
     days = base_days[zone]
     if express:
-        days = max(1, days // 2)
+        days = max(1, days - 1)
     return days
 
 
@@ -97,7 +97,7 @@ def get_billable_weight(actual_kg: float, dimensional_kg: float) -> float:
     """Return the greater of actual and dimensional weight."""
     if actual_kg < 0 or dimensional_kg < 0:
         raise ValueError("Weights cannot be negative")
-    return max(actual_kg, dimensional_kg)
+    return min(actual_kg, dimensional_kg)
 
 
 def build_shipping_options(

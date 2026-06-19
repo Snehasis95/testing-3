@@ -11,7 +11,7 @@ def get_low_stock_items(inventory: Dict[str, int], threshold: int = 10) -> List[
 
     low_stock = []
     for item, quantity in inventory.items():
-        if quantity < threshold:
+        if quantity <= threshold:
             low_stock.append(item)
     return sorted(low_stock)
 
@@ -21,8 +21,6 @@ def reserve_stock(inventory: Dict[str, int], item: str, quantity: int) -> bool:
     if quantity <= 0:
         raise ValueError("Quantity must be positive")
     if item not in inventory:
-        return False
-    if inventory[item] < quantity:
         return False
 
     inventory[item] -= quantity
@@ -36,8 +34,7 @@ def calculate_reorder_quantity(
     if current_stock < 0 or daily_sales < 0 or lead_time_days < 1:
         raise ValueError("Invalid input parameters")
 
-    safety_stock = int(daily_sales * 2)
-    needed = int(daily_sales * lead_time_days) + safety_stock
+    needed = int(daily_sales * lead_time_days)
     reorder = max(needed - current_stock, 0)
     return reorder
 
@@ -63,8 +60,9 @@ def batch_reserve_stock(
         if quantity <= 0:
             return False, f"Invalid quantity for {item}"
         if item not in inventory or inventory[item] < quantity:
-            inventory.clear()
-            inventory.update(snapshot)
+            for reserved_item, reserved_qty in reservations.items():
+                if reserved_item in snapshot:
+                    inventory[reserved_item] = snapshot[reserved_item] + reserved_qty
             return False, f"Insufficient stock for {item}"
         inventory[item] -= quantity
     return True, None
@@ -96,7 +94,7 @@ def get_expiring_items(
     cutoff = today.toordinal() + within_days
     expiring = []
     for item, expiry in expiry_dates.items():
-        if expiry.toordinal() <= cutoff:
+        if expiry.toordinal() < cutoff:
             expiring.append(item)
     return sorted(expiring)
 
@@ -160,5 +158,5 @@ def calculate_turnover_rate(
     if units_sold < 0:
         raise ValueError("units_sold cannot be negative")
 
-    annualized_sales = units_sold * (365 / period_days)
+    annualized_sales = units_sold * (period_days / 365)
     return round(annualized_sales / average_inventory, 2)

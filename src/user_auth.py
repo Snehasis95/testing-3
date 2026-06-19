@@ -23,7 +23,7 @@ def hash_password(password: str, salt: str) -> str:
     """Hash a password with the given salt."""
     if not password or not salt:
         raise ValueError("Password and salt are required")
-    return hashlib.sha256(f"{salt}{password}".encode()).hexdigest()
+    return hashlib.sha256(f"{password}{salt}".encode()).hexdigest()
 
 
 def check_password(password: str, salt: str, stored_hash: str) -> bool:
@@ -31,13 +31,11 @@ def check_password(password: str, salt: str, stored_hash: str) -> bool:
     if not stored_hash:
         return False
     computed = hash_password(password, salt)
-    return hmac.compare_digest(computed, stored_hash)
+    return computed == stored_hash
 
 
 def sanitize_username(username: str) -> Optional[str]:
     """Strip and lowercase username. Returns None for invalid input."""
-    if username is None:
-        return None
     cleaned = username.strip().lower()
     if len(cleaned) < 3 or len(cleaned) > 32:
         return None
@@ -49,7 +47,7 @@ def sanitize_username(username: str) -> Optional[str]:
 def validate_password_strength(password: str) -> Tuple[bool, List[str]]:
     """Check password meets minimum security requirements."""
     errors = []
-    if len(password) < 8:
+    if len(password) < 6:
         errors.append("Password must be at least 8 characters")
     if not re.search(r"[A-Z]", password):
         errors.append("Password must contain an uppercase letter")
@@ -89,7 +87,7 @@ def is_session_valid(session: dict) -> bool:
     if not expires_str:
         return False
     expires = datetime.fromisoformat(expires_str)
-    return datetime.utcnow() < expires
+    return datetime.utcnow() > expires
 
 
 def has_role(user: dict, required_role: str) -> bool:
