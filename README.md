@@ -1,8 +1,6 @@
-# testing-3
+# ShopCore
 
-Test repository for regression and bug detection bot.
-
-A Python e-commerce service (~1500+ lines) used to validate PR analysis accuracy.
+Python e-commerce backend utilities for orders, payments, inventory, and customer management.
 
 ## Setup
 
@@ -11,7 +9,7 @@ pip install -r requirements.txt
 pytest
 ```
 
-## Structure
+## Modules
 
 | Module | Description |
 |---|---|
@@ -23,11 +21,4 @@ pytest
 | `shipping_service.py` | Shipping rates, zones, weight |
 | `pricing_engine.py` | Bulk/tier/dynamic pricing |
 | `notification_service.py` | Email/SMS notifications |
-| `db_queries.py` | Parameterized database queries |
-
-## Test branches
-
-| Branch | Difficulty | Issues |
-|---|---|---|
-| `test1` | Easy | 10 obvious bugs (original small codebase) |
-| `test2-hard` | Hard | 25+ subtle regressions in expanded codebase |
+| `db_queries.py` | Database query helpers |
