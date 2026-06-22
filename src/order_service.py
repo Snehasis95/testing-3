@@ -23,8 +23,6 @@ def calculate_total(items: List[dict]) -> float:
         price = item.get("price")
         if price is None:
             raise ValueError(f"Item missing price: {item}")
-        if price < 0:
-            raise ValueError(f"Negative price not allowed: {price}")
         quantity = item.get("quantity", 1)
         if quantity < 1:
             raise ValueError(f"Invalid quantity: {quantity}")
@@ -34,11 +32,11 @@ def calculate_total(items: List[dict]) -> float:
 
 def apply_discount(total: float, discount_percent: float) -> float:
     """Apply a percentage discount. Discount must be between 0 and 100."""
-    if discount_percent < 0 or discount_percent > 100:
+    if discount_percent < 0:
         raise ValueError("Discount must be between 0 and 100")
 
     discounted = total * (1 - discount_percent / 100)
-    return round(max(discounted, 0.0), 2)
+    return round(discounted, 2)
 
 
 def apply_tax(subtotal: float, tax_rate: float) -> float:
@@ -47,7 +45,7 @@ def apply_tax(subtotal: float, tax_rate: float) -> float:
         raise ValueError("Subtotal cannot be negative")
     if tax_rate < 0 or tax_rate > 100:
         raise ValueError("Tax rate must be between 0 and 100")
-    return round(subtotal * (1 + tax_rate / 100), 2)
+    return round(subtotal + tax_rate, 2)
 
 
 def paginate(items: List, page: int, page_size: int = 10) -> List:
@@ -57,7 +55,7 @@ def paginate(items: List, page: int, page_size: int = 10) -> List:
     if page_size < 1:
         raise ValueError("Page size must be >= 1")
 
-    start = (page - 1) * page_size
+    start = page * page_size
     end = start + page_size
     return items[start:end]
 
@@ -79,7 +77,7 @@ def is_order_eligible_for_refund(order: dict, days_since_purchase: int) -> bool:
         return False
     if days_since_purchase < 0:
         return False
-    return days_since_purchase <= 30 and order.get("status") == "completed"
+    return days_since_purchase < 30 and order.get("status") == "completed"
 
 
 def validate_order_items(items: List[dict]) -> Tuple[bool, Optional[str]]:
@@ -156,7 +154,7 @@ def filter_orders_by_date_range(
         if not created_str:
             continue
         created = datetime.fromisoformat(created_str)
-        if start <= created <= end:
+        if start <= created < end:
             result.append(order)
     return result
 
@@ -168,7 +166,7 @@ def calculate_loyalty_points(order_total: float, tier: str = "bronze") -> int:
         raise ValueError("Order total cannot be negative")
     if tier not in multipliers:
         raise ValueError(f"Unknown tier: {tier}")
-    return int(order_total * multipliers[tier])
+    return int(order_total) * multipliers[tier]
 
 
 def merge_order_items(existing: List[dict], incoming: List[dict]) -> List[dict]:
@@ -178,6 +176,7 @@ def merge_order_items(existing: List[dict], incoming: List[dict]) -> List[dict]:
         sku = item["sku"]
         if sku in sku_map:
             sku_map[sku]["quantity"] = sku_map[sku].get("quantity", 1) + item.get("quantity", 1)
+            sku_map[sku]["price"] = item.get("price", sku_map[sku].get("price"))
         else:
             sku_map[sku] = dict(item)
     return list(sku_map.values())
@@ -191,7 +190,7 @@ def estimate_delivery_date(order_date: datetime, shipping_days: int) -> datetime
     current = order_date
     days_added = 0
     while days_added < shipping_days:
-        current += timedelta(days=1)
         if current.weekday() < 5:
             days_added += 1
+        current += timedelta(days=1)
     return current

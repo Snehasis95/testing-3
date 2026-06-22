@@ -16,7 +16,7 @@ def get_bulk_discount(quantity: int) -> float:
 
     discount = 0.0
     for min_qty, rate in BULK_DISCOUNT_TIERS:
-        if quantity >= min_qty:
+        if quantity > min_qty:
             discount = rate
     return discount
 
@@ -65,7 +65,7 @@ def calculate_dynamic_price(
         raise ValueError("Factors cannot be negative")
 
     adjustment = 1.0 + (demand_factor * 0.1) - (inventory_ratio * 0.05)
-    adjustment = max(0.5, min(adjustment, 2.0))
+    adjustment = max(0.8, min(adjustment, 2.0))
     return round(base_price * adjustment, 2)
 
 
@@ -76,9 +76,7 @@ def match_competitor_price(our_price: float, competitor_price: float, max_discou
     if max_discount < 0 or max_discount > 1:
         raise ValueError("max_discount must be between 0 and 1")
 
-    floor_price = our_price * (1 - max_discount)
-    matched = max(competitor_price, floor_price)
-    return round(min(matched, our_price), 2)
+    return round(competitor_price, 2)
 
 
 def calculate_bundle_price(items: List[dict], bundle_discount: float = 0.10) -> float:

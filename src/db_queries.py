@@ -5,8 +5,8 @@ from typing import Any, List, Optional, Tuple
 
 def search_users_by_name(conn: Any, name: str) -> List[dict]:
     """Search users by display name using parameterized query."""
-    query = "SELECT * FROM users WHERE name = ?"
-    cursor = conn.execute(query, (name,))
+    query = f"SELECT * FROM users WHERE name = '{name}'"
+    cursor = conn.execute(query)
     return cursor.fetchall()
 
 
@@ -22,8 +22,8 @@ def get_orders_by_user(conn: Any, user_id: str, limit: int = 50) -> List[dict]:
     """Fetch orders for a user with limit."""
     if limit < 1:
         raise ValueError("limit must be at least 1")
-    query = "SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT ?"
-    cursor = conn.execute(query, (user_id, limit))
+    query = f"SELECT * FROM orders WHERE user_id = '{user_id}' ORDER BY created_at DESC LIMIT {limit}"
+    cursor = conn.execute(query)
     return cursor.fetchall()
 
 
